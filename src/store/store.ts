@@ -58,6 +58,7 @@ export const useStore = create(
             for (let i = 0; i < state.CartList.length; i++) {
               let tempPrice = 0;
               for (let j = 0; j < state.CartList[i].prices.length; j++) {
+                console.info(state.CartList[i].prices);
                 tempPrice =
                   tempPrice +
                   parseFloat(state.CartList[i].prices[j].price) *
@@ -66,6 +67,7 @@ export const useStore = create(
               state.CartList[i].ItemPrice = tempPrice.toFixed(2).toString();
               totalPrice = tempPrice + totalPrice;
             }
+
             state.CartPrice = totalPrice.toFixed(2).toString();
           }),
         ),
@@ -125,6 +127,80 @@ export const useStore = create(
               }
             }
             state.FavoritesList.splice(spliceIndex, 1);
+          }),
+        ),
+      incrementCartItemQuantity: (id: string, size: string) =>
+        set(
+          produce(state => {
+            for (let i = 0; i < state.CartList.length; i++) {
+              if (state.CartList[id] === id) {
+                for (let j = 0; i < state.CartList[i].prices.length; j++) {
+                  if (state.CartList[i].prices[j].size === size) {
+                    state.CartList[i].prices[j].quantity++;
+                    break;
+                  }
+                }
+              }
+            }
+          }),
+        ),
+      decrementCartItemQuantity: (id: string, size: string) => {
+        set(
+          produce(state => {
+            for (let i = 0; i < state.CartList.length; i++) {
+              if (state.CartList[id] === id) {
+                for (let j = 0; i < state.CartList[i].prices.length; j++) {
+                  if (state.CartList[i].prices[j].size === size) {
+                    if (state.CartList[i].prices.length > 1) {
+                      if (state.CartList[i].prices[j].quantity.length > 1) {
+                        state.CartList[i].prices[j].quantity--;
+                        break;
+                      } else {
+                        state.CartList[i].prices.splice(j, 1);
+                      }
+                    } else {
+                      if (state.CartList[i].prices[j].quantity.length > 1) {
+                        state.CartList[i].prices[j].quantity--;
+                        break;
+                      } else {
+                        state.CartList.splice(i, 1);
+                      }
+                    }
+                    break;
+                  }
+                }
+              }
+            }
+          }),
+        );
+      },
+      addToOrderHistoryListFromCart: () =>
+        set(
+          produce(state => {
+            let temp = state.CartList.reduce(
+              (acc: number, val: any) => acc + parseFloat(val.ItemPrice),
+              0,
+            );
+            if (state.OrderHistoryList.length > 0) {
+              state.OrderHistoryList.unshift({
+                OrderDate:
+                  new Date().toDateString() +
+                  ' ' +
+                  new Date().toLocaleTimeString(),
+                cartLIst: state.CartList,
+                cartListPrice: temp.toFixed(2).toString(),
+              });
+            } else {
+              state.OrderHistoryList.push({
+                OrderDate:
+                  new Date().toDateString() +
+                  ' ' +
+                  new Date().toLocaleTimeString(),
+                cartLIst: state.CartList,
+                cartListPrice: temp.toFixed(2).toString(),
+              });
+            }
+            state.cartLIst = [];
           }),
         ),
     }),
